@@ -15,57 +15,63 @@ struct Foo {
     std::string sData;
 };
 
-void DataRaiseTest()
-{
-    constexpr auto size = 1000;
-    ciengine::concurrency::Sync<Foo> foo;
+// void DataRaiseTest()
+// {
+//     constexpr auto size = 1000;
+//     ciengine::concurrency::Sync<Foo> foo;
 
-    std::thread writerThread([size, rfoo = foo.getRef()] mutable {
-        for (auto i = 0; i < size; ++i) {
-            const auto randVal = rand();
-            rfoo.setValue(Foo { randVal, std::string{"String data "} + std::to_string(randVal) });
-        }
-    });
+//     std::thread writerThread([size, rfoo = foo.getRef()] mutable {
+//         for (auto i = 0; i < size; ++i) {
+//             const auto randVal = rand();
+//             rfoo.setValue(Foo { randVal, std::string{"String data "} + std::to_string(randVal) });
+//         }
+//     });
 
-    std::thread readerThread([size, rfoo = foo.getRef()]{
-        for (auto i = 0; i < size; ++i) {
-            rfoo.readOnlyAccess([](const Foo& f) {
-                std::cout << f.iData << " : " << f.sData << std::endl;
-            });
-        }
-    });
+//     std::thread readerThread([size, rfoo = foo.getRef()]{
+//         for (auto i = 0; i < size; ++i) {
+//             rfoo.readOnlyAccess([](const Foo& f) {
+//                 std::cout << f.iData << " : " << f.sData << std::endl;
+//             });
+//         }
+//     });
 
-    writerThread.join();
-    readerThread.join();
-}
+//     writerThread.join();
+//     readerThread.join();
+// }
 
 
-void LifeTimeSafeTest()
-{
-    auto lambda = []{
-        ciengine::concurrency::Sync<Foo> foo;
-        return foo.getRef();
-    };
+// void LifeTimeSafeTest()
+// {
+//     auto lambda = []{
+//         ciengine::concurrency::Sync<Foo> foo;
+//         return foo.getRef();
+//     };
 
-    auto rfoo = lambda();
-    rfoo.readOnlyAccess([](const Foo& f) {
-       std::cout << f.iData << " : " << f.sData << std::endl;
-    });
-}
+//     auto rfoo = lambda();
+//     rfoo.readOnlyAccess([](const Foo& f) {
+//        std::cout << f.iData << " : " << f.sData << std::endl;
+//     });
+// }
 
-void OkTest()
-{
-    ciengine::concurrency::Sync<Foo> foo;
-    auto rfoo = foo.getRef();
-    rfoo.setValue(Foo {1023, "Hello world!"});
+// void OkTest()
+// {
+//     ciengine::concurrency::Sync<Foo> foo;
+//     auto rfoo = foo.getRef();
+//     rfoo.setValue(Foo {1023, "Hello world!"});
 
-    rfoo.readOnlyAccess([](const Foo& f) {
-        std::cout << "str=" << f.sData << std::endl;
-    });
-}
+//     rfoo.readOnlyAccess([](const Foo& f) {
+//         std::cout << "str=" << f.sData << std::endl;
+//     });
+// }
 
 int main()
 {
+    ciengine::concurrency::Sync<Foo> f1;
 
+    f1.accessImmutable([](const Foo& foo) {
+        std::cout << foo.sData << std::endl;
+    });
+
+    ciengine::concurrency::SyncRef<Foo> rf1 = f1.getRef();
     return 0;
 }
